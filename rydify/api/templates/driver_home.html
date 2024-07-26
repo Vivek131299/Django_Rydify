@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row justify-content-md-center">
+    <div class="col col-md-8">
+
+        <div class="m-10">
+            <h3>Existing driver availability details</h3>
+            {% if driver_availability_details %}
+                <table class="table table-striped table-hover table-bordered">
+                    <thead class="table-dark">
+                      <tr>
+                        <th scope="col">Sr. No.</th>
+                        <th scope="col">Availability date</th>
+                        <th scope="col">Start time</th>
+                        <th scope="col">End time</th>
+                        <th scope="col">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for availability_detail in driver_availability_details %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ availability_detail.available_date }}</td>
+                                <td>{{ availability_detail.start_time }}</td>
+                                <td>{{ availability_detail.end_time }}</td>
+                                <td>
+                                    <div class="text-center">
+
+                                        <form method="post" action="{% url 'delete_driveravailability' availability_detail.id %}">
+                                          <input type="hidden" name="name" value="value" />
+                                            <a onclick="this.parentNode.submit();">
+                                                <button class="btn bg-transparent" type="button"><i class="bi bi-trash text-danger"></i></button>
+                                            </a>
+                                        </form>
+                                    </div>
+                                </td>
+
+
+
+                            </tr>
+                        {% endfor %}
+                     {% else %}
+                        <p>No existing driver availability details</p>
+                    {% endif %}
+              </tbody>
+              </table>
+            </div>
+    </div>
+
+    <div class="col-md-4">
+            <div class="m-10">
+
+                <div class="content-section">
+                    <form method="POST" action="{% url 'driveravailability' %}">
+                        {% csrf_token %}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Add Driver Availability Details</legend>
+                            {{ form|crispy }}
+                        </fieldset>
+                        <div class="form-group">
+                            <button class="btn btn-warning" type="submit">Submit</button>
+
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+</div>
+
+
+
+
+
+
+        <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+{% endblock content %}

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="row justify-content-md-center">
+    <div class="col col-md-9">
+
+        <div class="m-10">
+            <h3>Existing travel details</h3>
+            {% if customer_travel_details %}
+                <table class="table table-hover table-bordered">
+                    <thead class="table-dark">
+                      <tr>
+                        <th scope="col">Sr. No.</th>
+                        <th scope="col">Date of arrival</th>
+                        <th scope="col">Time of arrival</th>
+                        <th scope="col">Pickup</th>
+                        <th scope="col">Drop</th>
+                        <th scope="col">No. of check in</th>
+                        <th scope="col">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for travel_detail in customer_travel_details %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ travel_detail.date_of_arrival }}</td>
+                                <td>{{ travel_detail.time_of_arrival }}</td>
+                                <td>{{ travel_detail.pickup }}</td>
+                                <td>{{ travel_detail.drop }}</td>
+                                <td>{{ travel_detail.number_of_check_in }}</td>
+                                <td>
+                                    <div class="text-center">
+                                        <div class="inline-block">
+                                            <div class="float-left">
+                                                <a data-toggle="modal" data-target="#exampleModalCenter" data-travel-detail-id="{{ travel_detail.id }}">
+                                                    <button type="button" class="btn">
+                                                        <i class="bi bi-car-front"></i>
+                                                    </button>
+                                                </a>
+                                            </div>
+                                            <div class="float-right">
+                                                <form method="post" action="{% url 'delete_traveldetails' travel_detail.id %}">
+                                                    <a onclick="this.parentNode.submit();">
+                                                        <button class="btn" type="button"><i class="bi bi-trash text-danger"></i></button>
+                                                    </a>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+
+                            </tr>
+                        {% endfor %}
+                     {% else %}
+                        <p>No existing travel details</p>
+                    {% endif %}
+              </tbody>
+              </table>
+            </div>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">Available Drivers</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                        {% csrf_token %}
+                            <div class="row justify-content-center">
+                            <input hidden readonly class="form-control modal-travel-detail-id" type="number" name="travel_detail_id" value=""><br>
+                            </div>
+                            <div id="driver-info-container" class="d-flex justify-content-center"></div>
+
+                </div>
+            </div>
+        </div>
+        </div>
+
+    </div>
+
+
+
+    <div class="col-md-3">
+            <div class="m-10">
+
+                <div class="content-section">
+                    <form method="POST" action="{% url 'traveldetails' %}">
+                        {% csrf_token %}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Add Travel Details</legend>
+                            {{ form|crispy }}
+                        </fieldset>
+                        <div class="form-group">
+                            <button class="btn btn-warning" type="submit">Submit</button>
+
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+</div>
+
+        <!-- Optional JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+    <script>
+    $(document).ready(function() {
+        $('#exampleModalCenter').on('shown.bs.modal', function (e) {
+            console.info('Hitting API');
+
+            var button = $(e.relatedTarget); // Button that triggered the modal
+            var travelDetailId = button.data('travel-detail-id'); // Extract info from data-* attributes
+
+            // Update the modal's content.
+            var modal = $(this);
+            modal.find('.modal-travel-detail-id').val(travelDetailId);
+
+            var travelDetailId = $('.modal-travel-detail-id').val();
+            console.info(travelDetailId);
+            $.ajax({
+                url: '/api/get_available_drivers_by_travel_detail_id/',  // Replace with your actual API endpoint
+                type: 'GET',
+                data: {
+                    'travel_detail_id': travelDetailId,
+                },
+                success: function (data) {
+                    // Process the received data and update the modal content
+                    var driverInfoContainer = $('#driver-info-container');
+                    driverInfoContainer.empty(); // Clear any previous content
+
+                   if (data.length > 0) {
+                    var table = $('<table>').addClass('table table-hover table-bordered');
+                    var thead = $('<thead>').addClass('table-dark');
+                    var headerRow = $('<tr>');
+                    headerRow.append('<th scope="col">Name</th>');
+                    headerRow.append('<th scope="col">Email</th>');
+                    headerRow.append('<th scope="col">Action</th>');
+                    thead.append(headerRow);
+                    table.append(thead);
+
+                    var tbody = $('<tbody>');
+                    data.forEach(function(driver) {
+                        var row = $('<tr>');
+                        row.append('<td>' + driver.name + '</td>');
+                        row.append('<td>' + driver.email + '</td>');
+                        row.append('<td>' + '<a href="#">Send request</a>' + '</td>');
+                        tbody.append(row);
+                    });
+                    table.append(tbody);
+                    driverInfoContainer.append(table);
+                } else {
+                    driverInfoContainer.append('<p>No drivers available.</p>');
+                }
+
+                },
+                error: function (xhr, status, error) {
+                    console.error('Failed to fetch driver information:', error);
+                }
+            });
+        });
+    });
+    </script>
+
+{% endblock content %}
